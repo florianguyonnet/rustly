@@ -7,6 +7,7 @@ interface OptionInterface<Value> {
   isSome(): boolean
   isNone(): boolean
   isSomeAnd(fn: (value: Value) => boolean): boolean
+  isNoneAnd(fn: (value: Value) => boolean): boolean
 
   unwrap(): Value
   unwrapOr(def: Value | (() => Value)): Value
@@ -18,7 +19,7 @@ interface OptionInterface<Value> {
   take(): Option<Value>
 
   map<NewValue>(fn: (value: Value) => NewValue): Option<NewValue>
-  mapOr<NewValue>(def: NewValue | (() => NewValue), fn: (value: Value) => NewValue): NewValue
+  mapOr<NewValue>(def: NewValue | (() => NewValue), fn: (value: Value) => NewValue): Option<NewValue>
 
   okOr<ErrValue>(def: ErrValue | (() => ErrValue)): Result<Value, ErrValue>
 
@@ -59,6 +60,14 @@ class Option<Value> implements OptionInterface<Value> {
     return false;
   }
 
+  isNoneAnd(fn: (value: Value) => boolean): boolean {
+    if (this.isNone()) {
+      return fn(this.value as Value);
+    }
+
+    return false;
+  }
+
   unwrap(): Value {
     if (this.isSome()) {
       return this.value as Value;
@@ -83,7 +92,8 @@ class Option<Value> implements OptionInterface<Value> {
 
   insert(value: Value): Option<Value> {
     if (this.isNone()) {
-      return Some(value);
+      this.value = value;
+      this.type = OptionType.SOME;
     }
 
     return this;
@@ -115,12 +125,13 @@ class Option<Value> implements OptionInterface<Value> {
     return None();
   }
 
-  mapOr<NewValue>(def: NewValue | (() => NewValue), fn: (value: Value) => NewValue): NewValue {
+  mapOr<NewValue>(def: NewValue | (() => NewValue), fn: (value: Value) => NewValue): Option<NewValue> {
     if (this.isSome()) {
-      return fn(this.value as Value);
+      return Some(fn(this.value as Value));
     }
 
-    return def instanceof Function ? def() : def;
+    const result = def instanceof Function ? def() : def;
+    return Some(result);
   }
 
   okOr<ErrValue>(def: ErrValue | (() => ErrValue)): Result<Value, ErrValue> {

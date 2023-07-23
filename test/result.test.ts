@@ -230,7 +230,7 @@ describe('result', () => {
 
       const result = Ok(expectedValue);
       const newValue = result.mapOr('on error value', (res) => res);
-      expect(newValue).toEqual(expectedValue);
+      expect(newValue.unwrap()).toEqual(expectedValue);
     });
 
     it('should return the default value when result is a Err ', () => {
@@ -238,7 +238,7 @@ describe('result', () => {
 
       const result = Err();
       const newValue = result.mapOr(expectedValue, () => 'it\'s not err');
-      expect(newValue).toEqual(expectedValue);
+      expect(newValue.unwrap()).toEqual(expectedValue);
     });
   });
 
@@ -248,7 +248,7 @@ describe('result', () => {
 
       const result = Err(expectedValue);
       const newValue = result.mapErrOr('on ok value', (res) => res);
-      expect(newValue).toEqual(expectedValue);
+      expect(newValue.unwrapErr()).toEqual(expectedValue);
     });
 
     it('should return the default value when result is a Ok ', () => {
@@ -256,7 +256,7 @@ describe('result', () => {
 
       const result = Ok();
       const newValue = result.mapErrOr(expectedValue, () => 'it\'s not err');
-      expect(newValue).toEqual(expectedValue);
+      expect(newValue.unwrapErr()).toEqual(expectedValue);
     });
   });
 

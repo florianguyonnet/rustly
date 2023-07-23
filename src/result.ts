@@ -24,8 +24,8 @@ interface ResultInterface<OkValue, ErrValue> {
 
   map<NewValue>(fn: (res: OkValue) => NewValue): Result<NewValue, ErrValue>,
   mapErr<NewError>(fn: (err: ErrValue) => NewError): Result<OkValue, NewError>,
-  mapOr<NewValue>(def: NewValue | (() => NewValue), fn: (res: OkValue) => NewValue): NewValue,
-  mapErrOr<NewError>(def: NewError | (() => NewError), fn: (err: ErrValue) => NewError): NewError,
+  mapOr<NewValue>(def: NewValue | (() => NewValue), fn: (res: OkValue) => NewValue): Result<NewValue, ErrValue>,
+  mapErrOr<OtherError>(def: OtherError | (() => OtherError), fn: (err: ErrValue) => OtherError): Result<OkValue, OtherError>,
 
   or<OtherValue, OtherError>(res: Result<OtherValue, OtherError>): Result<OkValue, ErrValue> | Result<OtherValue, OtherError>,
   and<OtherValue, OtherError>(res: Result<OtherValue, OtherError>): Result<OtherValue, OtherError> | Result<OkValue, ErrValue>,
@@ -143,20 +143,22 @@ class Result<OkValue, ErrValue> implements ResultInterface<OkValue, ErrValue> {
     return Ok<OkValue, NewValue>(this.value as OkValue);
   }
 
-  mapOr<NewValue>(def: NewValue | (() => NewValue), fn: (res: OkValue) => NewValue): NewValue {
+  mapOr<NewValue>(def: NewValue | (() => NewValue), fn: (res: OkValue) => NewValue): Result<NewValue, ErrValue> {
     if (this.isOk()) {
-      return fn(this.value as OkValue);
+      return Ok(fn(this.value as OkValue));
     }
 
-    return def instanceof Function ? def() : def;
+    const newValue = def instanceof Function ? def() : def;
+    return Ok(newValue);
   }
 
-  mapErrOr<NewValue>(def: NewValue | (() => NewValue), fn: (err: ErrValue) => NewValue): NewValue {
+  mapErrOr<OtherError>(def: OtherError | (() => OtherError), fn: (err: ErrValue) => OtherError): Result<OkValue, OtherError> {
     if (this.isErr()) {
-      return fn(this.value as ErrValue);
+      return Err(fn(this.value as ErrValue));
     }
 
-    return def instanceof Function ? def() : def;
+    const newErr = def instanceof Function ? def() : def;
+    return Err(newErr);
   }
 
   or<OtherValue, OtherError>(res: Result<OtherValue, OtherError>): Result<OkValue, ErrValue> | Result<OtherValue, OtherError> {
@@ -171,7 +173,7 @@ class Result<OkValue, ErrValue> implements ResultInterface<OkValue, ErrValue> {
     return results.reduce((mergedResult, result) => {
       return result.mapOr(mergedResult, (value) => {
         return mergedResult.map((values) => values.concat(value));
-      });
+      }).unwrap();
     }, Ok<OkValue[], ErrValue>([]));
   }
 
@@ -179,7 +181,7 @@ class Result<OkValue, ErrValue> implements ResultInterface<OkValue, ErrValue> {
     return results.reduce((mergedResult, result) => {
       return result.mapErrOr(mergedResult, (err) => {
         return mergedResult.mapErr((errs) => errs.concat(err));
-      });
+      }).unwrapErr();
     }, Err<ErrValue[], OkValue>([]));
   }
 }
