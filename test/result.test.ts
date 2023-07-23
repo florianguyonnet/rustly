@@ -141,8 +141,30 @@ describe('result', () => {
       expect(newValue).toEqual(expectedValue);
     });
 
-    it('should return the or value when result is a Err ', () => {
+    it('should return the default value when result is a Err ', () => {
+      const expectedValue = 'it\'s err';
 
+      const result = Err();
+      const newValue = result.mapOr(expectedValue, () => 'it\'s not err');
+      expect(newValue).toEqual(expectedValue);
+    });
+  });
+
+  describe('mapErrOr', () => {
+    it('should return the value when result is a Err ', () => {
+      const expectedValue = 'it\'s ok';
+
+      const result = Err(expectedValue);
+      const newValue = result.mapErrOr('on ok value', (res) => res);
+      expect(newValue).toEqual(expectedValue);
+    });
+
+    it('should return the default value when result is a Ok ', () => {
+      const expectedValue = 'it\'s err';
+
+      const result = Ok();
+      const newValue = result.mapErrOr(expectedValue, () => 'it\'s not err');
+      expect(newValue).toEqual(expectedValue);
     });
   });
 
@@ -207,15 +229,36 @@ describe('result', () => {
   });
 
   describe('[static] merge', () => {
-    it('should return a Ok with an array of values when all results are Ok', () => {
+    it('should return a Ok with an array of values with all results which are Ok', () => {
       const listOfResultsToMerge = [
+        Err(1),
         Ok(1),
         Ok(2),
+        Err(2),
         Ok(3),
+        Err(3),
       ];
 
       const mergedResult = Result.merge(listOfResultsToMerge);
       const expectedResult = Ok([1, 2, 3]);
+
+      expect(mergedResult).toEqual(expectedResult);
+    });
+  });
+
+  describe('[static] mergeErr', () => {
+    it('should return a Err with an array of values with all results which are Err', () => {
+      const listOfResultsToMerge = [
+        Ok(1),
+        Err(1),
+        Err(2),
+        Ok(2),
+        Err(3),
+        Ok(3),
+      ];
+
+      const mergedResult = Result.mergeErr(listOfResultsToMerge);
+      const expectedResult = Err([1, 2, 3]);
 
       expect(mergedResult).toEqual(expectedResult);
     });

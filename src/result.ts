@@ -26,6 +26,7 @@ interface ResultInterface<OkValue, ErrValue> {
   map<NewValue>(fn: (res: OkValue) => NewValue): Result<NewValue, ErrValue>,
   mapErr<NewError>(fn: (err: ErrValue) => NewError): Result<OkValue, NewError>,
   mapOr<NewValue>(def: NewValue | (() => NewValue), fn: (res: OkValue) => NewValue): NewValue,
+  mapErrOr<NewError>(def: NewError | (() => NewError), fn: (err: ErrValue) => NewError): NewError,
 
   or<OtherValue, OtherError>(res: Result<OtherValue, OtherError>): Result<OkValue, ErrValue> | Result<OtherValue, OtherError>,
   and<OtherValue, OtherError>(res: Result<OtherValue, OtherError>): Result<OtherValue, OtherError> | Result<OkValue, ErrValue>,
@@ -125,6 +126,14 @@ class Result<OkValue, ErrValue> implements ResultInterface<OkValue, ErrValue> {
     return def instanceof Function ? def() : def;
   }
 
+  mapErrOr<NewValue>(def: NewValue | (() => NewValue), fn: (err: ErrValue) => NewValue): NewValue {
+    if (this.isErr()) {
+      return fn(this.value as ErrValue);
+    }
+
+    return def instanceof Function ? def() : def;
+  }
+
   or<OtherValue, OtherError>(res: Result<OtherValue, OtherError>): Result<OkValue, ErrValue> | Result<OtherValue, OtherError> {
     return this.isOk() ? this : res;
   }
@@ -135,10 +144,18 @@ class Result<OkValue, ErrValue> implements ResultInterface<OkValue, ErrValue> {
 
   static merge<OkValue, ErrValue>(results: Result<OkValue, ErrValue>[]): Result<OkValue[], ErrValue> {
     return results.reduce((mergedResult, result) => {
-      return result.mapOr(mergedResult, (value): Result<OkValue[], ErrValue> => {
+      return result.mapOr(mergedResult, (value) => {
         return mergedResult.map((values) => values.concat(value));
       });
     }, Ok<OkValue[], ErrValue>([]));
+  }
+
+  static mergeErr<OkValue, ErrValue>(results: Result<OkValue, ErrValue>[]): Result<OkValue, ErrValue[]> {
+    return results.reduce((mergedResult, result) => {
+      return result.mapErrOr(mergedResult, (err) => {
+        return mergedResult.mapErr((errs) => errs.concat(err));
+      });
+    }, Err<ErrValue[], OkValue>([]));
   }
 }
 
