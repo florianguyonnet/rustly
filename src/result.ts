@@ -8,14 +8,12 @@ interface ResultInterface<OkValue, ErrValue> {
   err(): Option<ErrValue>,
 
   unwrap(): OkValue,
-  // unwrapOr(def: OkValue): OkValue,
-  // unwrapOrElse(fn: () => OkValue): OkValue,
+  unwrapOr(def: OkValue | (() => OkValue)): OkValue,
   unwrapErr(): ErrValue,
-  // unwrapErrOr(def: ErrValue): ErrValue,
-  // unwrapErrOrElse(fn: () => any): any,
+  unwrapErrOr(def: ErrValue | (() => ErrValue)): ErrValue,
 
-  // expect(msg: string): any,
-  // expectErr(msg: string): Err,
+  expect(msg: string): OkValue,
+  expectErr(msg: string): ErrValue,
 
   isOk(): boolean,
   isErr(): boolean,
@@ -30,9 +28,6 @@ interface ResultInterface<OkValue, ErrValue> {
 
   or<OtherValue, OtherError>(res: Result<OtherValue, OtherError>): Result<OkValue, ErrValue> | Result<OtherValue, OtherError>,
   and<OtherValue, OtherError>(res: Result<OtherValue, OtherError>): Result<OtherValue, OtherError> | Result<OkValue, ErrValue>,
-
-  // andThen<T>(fn: (res: any) => Result<T, Err>): Result<T, Err>,
-  // orElse<T>(fn: (err: any) => Result<Ok, T>): Result<Ok, T>,
 }
 
 enum ResultType {
@@ -68,12 +63,42 @@ class Result<OkValue, ErrValue> implements ResultInterface<OkValue, ErrValue> {
     throw new Error(ERROR_RESULT_SHOULD_BE_OK);
   }
 
+  unwrapOr(def: OkValue | (() => OkValue)): OkValue {
+    if (this.isOk()) {
+      return this.value as OkValue;
+    }
+
+    return def instanceof Function ? def() : def;
+  }
+
   unwrapErr(): ErrValue {
     if (this.isErr()) {
       return this.value as ErrValue;
     }
 
     throw new Error(ERROR_RESULT_SHOULD_BE_ERR);
+  }
+
+  unwrapErrOr(def: ErrValue | (() => ErrValue)): ErrValue {
+    if (this.isErr()) {
+      return this.value as ErrValue;
+    }
+
+    return def instanceof Function ? def() : def;
+  }
+
+  expect(msg: string): OkValue {
+    return this.unwrapOr(() => {
+      const valueAsString = this.value ? this.value.toString() : 'undefined';
+      throw new Error(`${msg}: ${valueAsString}`);
+    });
+  }
+
+  expectErr(msg: string): ErrValue {
+    return this.unwrapErrOr(() => {
+      const valueAsString = this.value ? this.value.toString() : 'undefined';
+      throw new Error(`${msg}: ${valueAsString}`);
+    });
   }
 
   isOk(): boolean {

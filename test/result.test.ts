@@ -6,6 +6,30 @@ const ERROR_RESULT_SHOULD_BE_OK = 'Result should be of type Ok';
 const ERROR_RESULT_SHOULD_BE_ERR = 'Result should be of type Err';
 
 describe('result', () => {
+  describe('ok', () => {
+    it('should return a Some when result is Ok', () => {
+      const result = Ok(true);
+      expect(result.ok().isSome()).toBeTruthy();
+    });
+
+    it('should return a None when result is Err', () => {
+      const result = Err();
+      expect(result.ok().isNone()).toBeTruthy();
+    });
+  });
+
+  describe('err', () => {
+    it('should return a Some when result is Err', () => {
+      const result = Err(true);
+      expect(result.err().isSome()).toBeTruthy();
+    });
+
+    it('should return a None when result is Ok', () => {
+      const result = Ok();
+      expect(result.err().isNone()).toBeTruthy();
+    });
+  });
+
   describe('unwrap', () => {
     it('should return the value when result is Ok', () => {
       const result = Ok(true);
@@ -18,6 +42,23 @@ describe('result', () => {
     });
   });
 
+  describe('unwrapOr', () => {
+    it('should return the value when result is Ok', () => {
+      const result = Ok(true);
+      expect(result.unwrapOr(false)).toBeTruthy();
+    });
+
+    it('should return the default value when result is Err', () => {
+      const result = Err<undefined, boolean>();
+      expect(result.unwrapOr(false)).toBeFalsy();
+    });
+
+    it('should return the default value function result when result is Err', () => {
+      const result = Err<undefined, boolean>();
+      expect(result.unwrapOr(() => false)).toBeFalsy();
+    });
+  });
+
   describe('unwrapErr', () => {
     it('should return the value when result is Err', () => {
       const result = Err(true);
@@ -27,6 +68,57 @@ describe('result', () => {
     it('should throw an error when result is Ok', () => {
       const result = Ok();
       expect(() => result.unwrapErr()).toThrowError(ERROR_RESULT_SHOULD_BE_ERR);
+    });
+  });
+
+  describe('unwrapErrOr', () => {
+    it('should return the value when result is Err', () => {
+      const result = Err(true);
+      expect(result.unwrapErrOr(false)).toBeTruthy();
+    });
+
+    it('should return the default value when result is Ok', () => {
+      const result = Ok<undefined, boolean>();
+      expect(result.unwrapErrOr(false)).toBeFalsy();
+    });
+
+    it('should return the default value function result when result is Ok', () => {
+      const result = Ok<undefined, boolean>();
+      expect(result.unwrapErrOr(() => false)).toBeFalsy();
+    });
+  });
+
+  describe('expect', () => {
+    it('should return the value when result is Ok', () => {
+      const result = Ok(true);
+      expect(result.expect('error message')).toBeTruthy();
+    });
+
+    it('should throw an error with the message when result is Err', () => {
+      const result = Err();
+      expect(() => result.expect('error message')).toThrowError('error message: undefined');
+    });
+
+    it('should throw an error with the message and the value when result is Err', () => {
+      const result = Err('an error');
+      expect(() => result.expect('error message')).toThrowError('error message: an error');
+    });
+  });
+
+  describe('expectErr', () => {
+    it('should return the value when result is Err', () => {
+      const result = Err(true);
+      expect(result.expectErr('error message')).toBeTruthy();
+    });
+
+    it('should throw an error with the message when result is Ok', () => {
+      const result = Ok();
+      expect(() => result.expectErr('error message')).toThrowError('error message: undefined');
+    });
+
+    it('should throw an error with the message and the value when result is Ok', () => {
+      const result = Ok('a value');
+      expect(() => result.expectErr('error message')).toThrowError('error message: a value');
     });
   });
 
@@ -69,7 +161,7 @@ describe('result', () => {
 
     it('should return false when result is a Err', () => {
       const result = Err();
-      const isOk = result.isOkAnd((res) => true);
+      const isOk = result.isOkAnd(() => true);
       expect(isOk).toBeFalsy();
     });
   });
@@ -89,7 +181,7 @@ describe('result', () => {
 
     it('should return false when result is a Ok', () => {
       const result = Ok();
-      const isErr = result.isErrAnd((res) => true);
+      const isErr = result.isErrAnd(() => true);
       expect(isErr).toBeFalsy();
     });
   });
@@ -99,7 +191,7 @@ describe('result', () => {
       const expectedValue = 'it\'s ok';
 
       const result = Ok();
-      const newResult = result.map((res) => expectedValue);
+      const newResult = result.map(() => expectedValue);
       expect(newResult.unwrap()).toEqual(expectedValue);
     });
 
@@ -107,7 +199,7 @@ describe('result', () => {
       const expectedValue = 'it\'s err';
 
       const result = Err(expectedValue);
-      const newResult = result.map((res) => 'it\'s not err');
+      const newResult = result.map(() => 'it\'s not err');
 
       expect(newResult.unwrapErr()).toEqual(expectedValue);
     });
@@ -118,7 +210,7 @@ describe('result', () => {
       const expectedValue = 'it\'s err';
 
       const result = Err();
-      const newResult = result.mapErr((res) => expectedValue);
+      const newResult = result.mapErr(() => expectedValue);
       expect(newResult.unwrapErr()).toEqual(expectedValue);
     });
 
@@ -126,7 +218,7 @@ describe('result', () => {
       const expectedValue = 'it\'s ok';
 
       const result = Ok(expectedValue);
-      const newResult = result.mapErr((res) => 'it\'s err');
+      const newResult = result.mapErr(() => 'it\'s err');
 
       expect(newResult.unwrap()).toEqual(expectedValue);
     });
@@ -289,7 +381,6 @@ describe('Err', () => {
   it('should return a Err result with a None value', () => {
     const result = Err();
     expect(result.isErr()).toBeTruthy();
-    console.log(result.unwrapErr());
     expect(result.unwrapErr()).toBeUndefined();
   });
 });
