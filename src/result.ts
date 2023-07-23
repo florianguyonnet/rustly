@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-cycle
 import { None, Option, Some } from './option';
 
 const ERROR_RESULT_SHOULD_BE_OK = 'Result should be of type Ok';
@@ -127,8 +128,7 @@ class Result<OkValue, ErrValue> implements ResultInterface<OkValue, ErrValue> {
 
   map<NewValue>(fn: (res: OkValue) => NewValue): Result<NewValue, ErrValue> {
     if (this.isOk()) {
-      const newValue = fn(this.value as OkValue);
-      return Ok(newValue);
+      return Ok(fn(this.value as OkValue));
     }
 
     return Err<ErrValue, NewValue>(this.value as ErrValue);
