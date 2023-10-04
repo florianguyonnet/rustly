@@ -1,16 +1,18 @@
-// eslint-disable-next-line import/no-cycle
 import { Err, Ok, Result } from './result';
+import { OPTION_TYPE_RUSTLY_HASH_IDENTIFIER } from './utils';
 
 const ERROR_OPTION_SHOULD_BE_SOME = 'Option should be of type Some';
+const ERROR_OPTION_SHOULD_BE_NONE = 'Option should be of type None';
 
 interface OptionInterface<Value> {
   isSome(): boolean
   isNone(): boolean
   isSomeAnd(fn: (value: Value) => boolean): boolean
-  isNoneAnd(fn: (value: Value) => boolean): boolean
+  isNoneAnd(fn: () => boolean): boolean
 
   unwrap(): Value
   unwrapOr(def: Value | (() => Value)): Value
+  unwrapNone(): void
 
   expect(msg: string): Value
 
@@ -60,9 +62,9 @@ class Option<Value> implements OptionInterface<Value> {
     return false;
   }
 
-  isNoneAnd(fn: (value: Value) => boolean): boolean {
+  isNoneAnd(fn: () => boolean): boolean {
     if (this.isNone()) {
-      return fn(this.value as Value);
+      return fn();
     }
 
     return false;
@@ -84,6 +86,12 @@ class Option<Value> implements OptionInterface<Value> {
     return def instanceof Function ? def() : def;
   }
 
+  unwrapNone(): void {
+    if (this.isSome()) {
+      throw new Error(ERROR_OPTION_SHOULD_BE_NONE);
+    }
+  }
+
   expect(msg: string): Value {
     return this.unwrapOr(() => {
       throw new Error(`${msg}`);
@@ -91,19 +99,18 @@ class Option<Value> implements OptionInterface<Value> {
   }
 
   insert(value: Value): Option<Value> {
-    if (this.isNone()) {
-      this.value = value;
-      this.type = OptionType.SOME;
-    }
-
+    this.value = value;
+    this.type = OptionType.SOME;
     return this;
   }
 
   take(): Option<Value> {
     if (this.isSome()) {
       const value = this.value as Value;
+
       this.type = OptionType.NONE;
       this.value = undefined;
+
       return Some(value);
     }
 
@@ -149,9 +156,13 @@ class Option<Value> implements OptionInterface<Value> {
   and<OtherValue>(other: Option<OtherValue>): Option<OtherValue> | Option<Value> {
     return this.isSome() ? other : this;
   }
+
+  get rustlyHashIdentifier(): string {
+    return OPTION_TYPE_RUSTLY_HASH_IDENTIFIER;
+  }
 }
 
-function Some<Value>(value: Value): Option<Value> {
+function Some<Value>(value?: Value): Option<Value> {
   return new Option(OptionType.SOME, value);
 }
 

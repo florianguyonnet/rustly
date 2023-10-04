@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { Err, Ok, Result } from '../src/result';
+import { Err, Ok, Result } from '../src';
+import { RESULT_TYPE_RUSTLY_HASH_IDENTIFIER } from '../src/utils';
 
 const ERROR_RESULT_SHOULD_BE_OK = 'Result should be of type Ok';
 const ERROR_RESULT_SHOULD_BE_ERR = 'Result should be of type Err';
@@ -317,6 +318,33 @@ describe('result', () => {
       const secondErr = Err('second err');
 
       expect(firstErr.and(secondErr).unwrapErr()).toEqual('first err');
+    });
+  });
+
+  describe('flatten', () => {
+    it('should return the last result when multiple results are nested', () => {
+      const expectedValue = 'it\'s err';
+      const nestedResults = Ok(Ok(Err(Ok(Err(expectedValue)))));
+
+      const result = nestedResults.flatten();
+      expect(result.isErr()).toBeTruthy();
+      expect(result.unwrapErr()).toEqual(expectedValue);
+    });
+
+    it('should return the last result when no results are nested', () => {
+      const expectedValue = 'it\'s ok';
+      const nestedResults = Ok(expectedValue);
+
+      const result = nestedResults.flatten();
+      expect(result.isOk()).toBeTruthy();
+      expect(result.unwrap()).toEqual(expectedValue);
+    });
+  });
+
+  describe('[get] rustlyHashIdentifier', () => {
+    it('should return the rustly hash identifier', () => {
+      const result = Ok();
+      expect(result.rustlyHashIdentifier).toEqual(RESULT_TYPE_RUSTLY_HASH_IDENTIFIER);
     });
   });
 

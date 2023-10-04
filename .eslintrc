@@ -3,7 +3,7 @@
   "parserOptions": {
     "ecmaVersion": 2022,
     "sourceType": "module",
-    "project": "./tsconfig.json"
+    "project": "./tsconfig.test.json"
   },
   "plugins": [
     "@typescript-eslint",
@@ -22,6 +22,8 @@
     "simple-import-sort/exports": "error",
     "@typescript-eslint/no-use-before-define": "off",
     "arrow-body-style": "off",
-    "max-len": ["error", { "code": 150 }]
+    "max-len": ["error", { "code": 150 }],
+    "class-methods-use-this": "off",
+    "import/no-cycle": "off"
   }
 }

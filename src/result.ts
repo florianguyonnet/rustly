@@ -1,10 +1,10 @@
-// eslint-disable-next-line import/no-cycle
 import { None, Option, Some } from './option';
+import { isResultInstance, RESULT_TYPE_RUSTLY_HASH_IDENTIFIER } from './utils';
 
 const ERROR_RESULT_SHOULD_BE_OK = 'Result should be of type Ok';
 const ERROR_RESULT_SHOULD_BE_ERR = 'Result should be of type Err';
 
-interface ResultInterface<OkValue, ErrValue> {
+export interface ResultInterface<OkValue, ErrValue> {
   ok(): Option<OkValue>,
   err(): Option<ErrValue>,
 
@@ -29,6 +29,8 @@ interface ResultInterface<OkValue, ErrValue> {
 
   or<OtherValue, OtherError>(res: Result<OtherValue, OtherError>): Result<OkValue, ErrValue> | Result<OtherValue, OtherError>,
   and<OtherValue, OtherError>(res: Result<OtherValue, OtherError>): Result<OtherValue, OtherError> | Result<OkValue, ErrValue>,
+
+  flatten(): Result<unknown, unknown>,
 }
 
 enum ResultType {
@@ -167,6 +169,21 @@ class Result<OkValue, ErrValue> implements ResultInterface<OkValue, ErrValue> {
 
   and<OtherValue, OtherError>(res: Result<OtherValue, OtherError>): Result<OtherValue, OtherError> | Result<OkValue, ErrValue> {
     return this.isOk() ? res : this;
+  }
+
+  flatten(): Result<unknown, unknown> {
+    const isValueIsResult = isResultInstance(this.value);
+
+    if (isValueIsResult) {
+      const value = this.value as Result<unknown, unknown>;
+      return value.flatten();
+    }
+
+    return this;
+  }
+
+  get rustlyHashIdentifier(): string {
+    return RESULT_TYPE_RUSTLY_HASH_IDENTIFIER;
   }
 
   static merge<OkValue, ErrValue>(results: Result<OkValue, ErrValue>[]): Result<OkValue[], ErrValue> {

@@ -53,7 +53,7 @@ success.isErrAnd(val => val === 1); // false
 
 success.unwrap(); // 1
 success.unwrapOr('not a number'); // 1
-sucess.unwrapErr(); // throws
+success.unwrapErr(); // throws
 success.unwrapErrOr(42); // 42
 
 success.expect('not a number'); // 1
@@ -65,9 +65,15 @@ success.mapErr(val => val + 1); // Ok(1)
 success.and(Ok(2)); // Ok(2)
 success.and(Err('not a number')); // Err('not a number')
 
+// Merge array of Result into a single Result
 const arrayOfResult = [Ok(1), Ok(2), Ok(3)], Err('not a number')];
 Result.merge(arrayOfResult); // Ok([1, 2, 3])
 Result.mergeErr(arrayOfResult); // Err(['not a number'])
+
+// Nested Result
+const nestedResult = Ok(Ok(1));
+nestedResult.flatten(); // Ok(1)
+success.map(val => Err()).flatten(); // Err()
 ```
 
 #### Option usage
