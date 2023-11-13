@@ -4,6 +4,11 @@ import { isResultInstance, RESULT_TYPE_RUSTLY_HASH_IDENTIFIER } from './utils';
 const ERROR_RESULT_SHOULD_BE_OK = 'Result should be of type Ok';
 const ERROR_RESULT_SHOULD_BE_ERR = 'Result should be of type Err';
 
+export interface ResultMatchInterface<OkValue, ErrValue, OkResult, ErrResult> {
+  ok(data: OkValue): OkResult,
+  err(data: ErrValue): ErrResult
+}
+
 export interface ResultInterface<OkValue, ErrValue> {
   ok(): Option<OkValue>,
   err(): Option<ErrValue>,
@@ -15,6 +20,8 @@ export interface ResultInterface<OkValue, ErrValue> {
 
   expect(msg: string): OkValue,
   expectErr(msg: string): ErrValue,
+
+  match<OkResult, ErrResult>(cases: ResultMatchInterface<OkValue, ErrValue, OkResult, ErrResult>): void, // TODO: Add possible return
 
   isOk(): boolean,
   isErr(): boolean,
@@ -102,6 +109,14 @@ class Result<OkValue, ErrValue> implements ResultInterface<OkValue, ErrValue> {
       const valueAsString = this.value ? this.value.toString() : 'undefined';
       throw new Error(`${msg}: ${valueAsString}`);
     });
+  }
+
+  match<OkResult, ErrResult>(cases: ResultMatchInterface<OkValue, ErrValue, OkResult, ErrResult>): OkResult|ErrResult {
+    if(this.isOk()) {
+      return cases.ok(this.value as OkValue);
+    } else {
+      return cases.err(this.value as ErrValue);
+    }
   }
 
   isOk(): boolean {
