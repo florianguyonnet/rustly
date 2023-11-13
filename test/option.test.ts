@@ -300,3 +300,69 @@ describe('None', () => {
     expect(option.unwrapNone()).toBeUndefined();
   });
 });
+
+describe('match', () => {
+  it('should match a Some with the "some" case', () => {
+    const option = Some("Some text");
+    let success!: boolean;
+    option.match({
+      some() {
+        success = true
+      },
+      none() {
+        success = false;
+      }
+    });
+    expect(success).toBeTruthy();
+  });
+
+  it('should match an None with the "none" case', () => {
+    const option = None();
+    let success!: boolean;
+    option.match({
+      some() {
+        success = true
+      },
+      none() {
+        success = false;
+      }
+    });
+    expect(success).toBeFalsy();
+  });
+
+  it('should give a value for the "some" case', () => {
+    const option = Some(2);
+    option.match({
+      some(data) {
+        expect(data).toBe(2);
+      },
+      none() {},
+    })
+  });
+
+  it('should allow for values to be returned by "some" case', () => {
+    const option = Some(4);
+    let value = option.match({
+      some(data) {
+        return data + 1;
+      },
+      none() {
+        return 0;
+      },
+    });
+    expect(value).toBe(5);
+  });
+
+  it('should allow for values to be returned by "none" case', () => {
+    const option = None<number>();
+    let value = option.match({
+      some(data) {
+        return data + 1;
+      },
+      none() {
+        return 0;
+      },
+    });
+    expect(value).toBe(0);
+  });
+});

@@ -21,7 +21,7 @@ export interface ResultInterface<OkValue, ErrValue> {
   expect(msg: string): OkValue,
   expectErr(msg: string): ErrValue,
 
-  match<OkResult, ErrResult>(cases: ResultMatchInterface<OkValue, ErrValue, OkResult, ErrResult>): void, // TODO: Add possible return
+  match<OkResult, ErrResult>(cases: ResultMatchInterface<OkValue, ErrValue, OkResult, ErrResult>): void,
 
   isOk(): boolean,
   isErr(): boolean,
