@@ -4,7 +4,7 @@ import { isResultInstance } from './utils';
 declare global {
   interface Promise<T> {
     thenOnOk<U>(callback: (value: T extends Result<infer OkValue, any> ? OkValue : never) => U | PromiseLike<U>): Promise<U>;
-    thenOnErr<U>(callback: (error: T extends Result<any, infer Err> ? Err : any) => U | PromiseLike<U>): Promise<U>;
+    thenOnErr<U>(callback: (error: T extends Result<any, infer ErrValue> ? ErrValue : any) => U | PromiseLike<U>): Promise<U>;
   }
 
   interface PromiseConstructor {
