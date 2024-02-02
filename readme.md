@@ -59,6 +59,17 @@ success.unwrapErrOr(42); // 42
 success.expect('not a number'); // 1
 success.expectErr('not a number'); // throws
 
+const successPlusOneOrZeroIfErr = success.match({
+  ok(val) {
+    // If it is Ok return the value + 1
+    return val + 1;
+  },
+  err() {
+    // Return 0 if there was an error
+    return 0;
+  }
+})
+
 success.map(val => val + 1); // Ok(2)
 success.mapErr(val => val + 1); // Ok(1)
 
@@ -94,6 +105,17 @@ some.unwrap(); // 1
 some.unwrapOr('not a number'); // 1
 
 some.expect('not a number'); // 1
+
+const somePlusOneOrZeroIfNone = some.match({
+  some(val) {
+    // If it is Some return the value + 1
+    return val + 1;
+  },
+  none() {
+    // Return 0 if it is None
+    return 0;
+  }
+})
 
 none.insert(5); // Some(5)
 const taken = some.take(); // Some(1) and some is now None

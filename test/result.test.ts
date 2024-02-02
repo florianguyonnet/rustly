@@ -412,3 +412,79 @@ describe('Err', () => {
     expect(result.unwrapErr()).toBeUndefined();
   });
 });
+
+describe('match', () => {
+  it('should match an Ok with the "ok" case', () => {
+    const result = Ok("Some text");
+    let success!: boolean;
+    result.match({
+      ok() {
+        success = true
+      },
+      err() {
+        success = false;
+      }
+    });
+    expect(success).toBeTruthy();
+  });
+
+  it('should match an Err with the "err" case', () => {
+    const result = Err("Some text");
+    let success!: boolean;
+    result.match({
+      ok() {
+        success = true
+      },
+      err() {
+        success = false;
+      }
+    });
+    expect(success).toBeFalsy();
+  });
+
+  it('should give a value for the "ok" case', () => {
+    const result = Ok(2);
+    result.match({
+      ok(data) {
+        expect(data).toBe(2);
+      },
+      err() {},
+    })
+  });
+
+  it('should give a value for the "err" case', () => {
+    const result = Err("Fail text");
+    result.match({
+      ok() {},
+      err(data) {
+        expect(data).toBe("Fail text");
+      },
+    })
+  });
+
+  it('should allow for values to be returned by "ok" case', () => {
+    const result = Ok(4);
+    let value = result.match({
+      ok(data) {
+        return data + 1;
+      },
+      err() {
+        return 0;
+      },
+    });
+    expect(value).toBe(5);
+  });
+
+  it('should allow for values to be returned by "err" case', () => {
+    const result: Result<number, string> = Err<string, number>("Failed");
+    let value = result.match({
+      ok(data) {
+        return data + 1;
+      },
+      err() {
+        return 0;
+      },
+    });
+    expect(value).toBe(0);
+  });
+});

@@ -4,6 +4,11 @@ import { OPTION_TYPE_RUSTLY_HASH_IDENTIFIER } from './utils';
 const ERROR_OPTION_SHOULD_BE_SOME = 'Option should be of type Some';
 const ERROR_OPTION_SHOULD_BE_NONE = 'Option should be of type None';
 
+export interface OptionMatchInterface<Value, NoneResult, SomeResult> {
+  none(): NoneResult,
+  some(data: Value): SomeResult
+}
+
 interface OptionInterface<Value> {
   isSome(): boolean
   isNone(): boolean
@@ -15,6 +20,8 @@ interface OptionInterface<Value> {
   unwrapNone(): void
 
   expect(msg: string): Value
+
+  match<NoneResult, SomeResult>(cases: OptionMatchInterface<Value, NoneResult, SomeResult>): void
 
   insert(value: Value): Option<Value>
   replace(value: Value): Option<Value>
@@ -96,6 +103,14 @@ class Option<Value> implements OptionInterface<Value> {
     return this.unwrapOr(() => {
       throw new Error(`${msg}`);
     });
+  }
+
+  match<NoneResult, SomeResult>(cases: OptionMatchInterface<Value, NoneResult, SomeResult>): NoneResult|SomeResult {
+    if(this.isNone()) {
+      return cases.none();
+    } else {
+      return cases.some(this.value as Value);
+    }
   }
 
   insert(value: Value): Option<Value> {
