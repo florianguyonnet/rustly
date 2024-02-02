@@ -111,12 +111,11 @@ class Result<OkValue, ErrValue> implements ResultInterface<OkValue, ErrValue> {
     });
   }
 
-  match<OkResult, ErrResult>(cases: ResultMatchInterface<OkValue, ErrValue, OkResult, ErrResult>): OkResult|ErrResult {
-    if(this.isOk()) {
+  match<OkResult, ErrResult>(cases: ResultMatchInterface<OkValue, ErrValue, OkResult, ErrResult>): OkResult | ErrResult {
+    if (this.isOk()) {
       return cases.ok(this.value as OkValue);
-    } else {
-      return cases.err(this.value as ErrValue);
     }
+    return cases.err(this.value as ErrValue);
   }
 
   isOk(): boolean {

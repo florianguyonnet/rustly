@@ -105,12 +105,11 @@ class Option<Value> implements OptionInterface<Value> {
     });
   }
 
-  match<NoneResult, SomeResult>(cases: OptionMatchInterface<Value, NoneResult, SomeResult>): NoneResult|SomeResult {
-    if(this.isNone()) {
+  match<NoneResult, SomeResult>(cases: OptionMatchInterface<Value, NoneResult, SomeResult>): NoneResult | SomeResult {
+    if (this.isNone()) {
       return cases.none();
-    } else {
-      return cases.some(this.value as Value);
     }
+    return cases.some(this.value as Value);
   }
 
   insert(value: Value): Option<Value> {

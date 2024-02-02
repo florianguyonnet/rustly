@@ -134,6 +134,17 @@ none.or(Some(2)); // Some(2)
 some.and(Some(2)); // Some(2)
 none.and(Some(2)); // None
 ```
+
+#### Promise override
+```typescript
+Promise.resolveFromOk(1)
+  .thenOnOk(okvalue => console.log(okvalue))
+  .thenOnErr(errvalue => console.log(errvalue));
+
+Promise.resolveFromErr(1)
+  .thenOnOk(okvalue => console.log(okvalue))
+  .thenOnErr(errvalue => console.log(errvalue)); 
+```
 ## Contributing
 
 Contributions are welcome! If you find any issues or have new features to add, please feel free to open an issue or submit a pull request.
